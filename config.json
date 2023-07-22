@@ -1,0 +1,9 @@
+{
+    "api": {
+      "url": "https://api.mullvad.net/app/v1/relays",
+      "timeout": 10,
+      "max_retries": 3
+    },
+    "hostnames": ["au-per-wg-302", "ca-tor-wg-106"]
+  }
+  
