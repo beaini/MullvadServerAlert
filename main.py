@@ -1,4 +1,5 @@
 import requests
+import os
 import sys
 import json
 import time
@@ -13,6 +14,11 @@ with open('config.json') as f:
     config = json.load(f)
     api_config = config['api']
     hostnames = config['hostnames']
+    discord_webhook = config.get('discord_webhook', '')  # Load Discord webhook URL, if empty use '' as default
+
+# If the discord webhook URL is empty in the config file, get it from the environment variable
+if not discord_webhook:
+    discord_webhook = os.getenv('DISCORD_WEBHOOK')
 
 def get_data_from_api(url: str, timeout: int, max_retries: int) -> Union[dict, str]:
     for i in range(max_retries):
@@ -23,8 +29,8 @@ def get_data_from_api(url: str, timeout: int, max_retries: int) -> Union[dict, s
             return response.json()
         except requests.exceptions.RequestException as e:
             logging.error(f"Request failed on attempt {i+1}/{max_retries} with error: {str(e)}")
-            if i < max_retries - 1: # i is zero indexed
-                time.sleep(2) # wait before trying again
+            if i < max_retries - 1:  # i is zero indexed
+                time.sleep(2)  # wait before trying again
                 continue
             else:
                 return f"Request failed after {max_retries} attempts: {str(e)}."
@@ -39,9 +45,15 @@ def get_relay_status(data: dict, hostname: str) -> Union[str, bool, None]:
         for relay in data[relay_type]["relays"]:
             if relay["hostname"] == hostname:
                 return relay["active"]
-    
+
     # If the hostname was not found
     return f"Hostname {hostname} not found in the relay list."
+
+def send_discord_notification(webhook: str, message: str):
+    data = {"content": message}
+    response = requests.post(webhook, data=json.dumps(data), headers={"Content-Type": "application/json"})
+    if response.status_code != 204:
+        raise ValueError(f"Request to Discord returned an error {response.status_code}, the response is:\n{response.text}")
 
 # Get data from the API
 data = get_data_from_api(api_config['url'], api_config['timeout'], api_config['max_retries'])
@@ -66,4 +78,9 @@ else:
 if failed_hostnames:
     with open('failed_hostnames.json', 'w') as f:
         json.dump(failed_hostnames, f)
+
+    # Send a notification to Discord
+    failed_hostnames_str = ', '.join(failed_hostnames)
+    send_discord_notification(discord_webhook, f"⚠️ The following hostnames are not active: {failed_hostnames_str}")
+
     sys.exit(1)
