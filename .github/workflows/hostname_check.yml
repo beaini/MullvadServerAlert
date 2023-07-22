@@ -21,7 +21,7 @@ jobs:
     - name: Run script
       id: check-script
       run: |
-        python check_hostname.py
+        python main.py
     - name: Discord Notification if Failed
       if: steps.check-script.outcome == 'failure'
       run: |
