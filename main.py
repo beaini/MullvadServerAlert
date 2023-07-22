@@ -83,4 +83,3 @@ if failed_hostnames:
     failed_hostnames_str = ', '.join(failed_hostnames)
     send_discord_notification(discord_webhook, f"⚠️ The following hostnames are not active: {failed_hostnames_str}")
 
-    sys.exit(1)
