@@ -26,3 +26,4 @@ jobs:
       run: python main.py
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        HOSTNAMES: ${{ secrets.HOSTNAMES }}

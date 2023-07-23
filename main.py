@@ -14,6 +14,11 @@ with open('config.json') as f:
     config = json.load(f)
     api_config = config['api']
     hostnames = config['hostnames']
+
+    # If the list of servers is empty in the config file, get it from the environment variable
+    if not hostnames:
+        hostnames = os.getenv('HOSTNAMES').split(',')
+    
     discord_webhook = config.get('discord_webhook', '')  # Load Discord webhook URL, if empty use '' as default
 
 # If the discord webhook URL is empty in the config file, get it from the environment variable

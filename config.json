@@ -4,7 +4,7 @@
       "timeout": 10,
       "max_retries": 3
     },
-    "hostnames": ["au-per-wg-302", "ca-tor-wg-106"],
+    "hostnames": "",
     "discord_webhook": ""
   }
   
