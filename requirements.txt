@@ -1,2 +1,2 @@
-requests
-apprise
+requests==2.31.0
+apprise==1.4.5
