@@ -25,6 +25,5 @@ jobs:
     - name: Run script
       run: python main.py
       env:
-        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         HOSTNAMES: ${{ secrets.HOSTNAMES }}
         APPRISE_URLS: ${{ secrets.APPRISE_URLS }}
