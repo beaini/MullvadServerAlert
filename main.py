@@ -96,10 +96,7 @@ if isinstance(data, dict):
     for hostname in hostnames:
         status = get_relay_status(data, hostname)
         if status is False:
-            print(f"⚠️ Hostname {hostname} is not active!")
             failed_hostnames.append(hostname)
-        else:
-            print(f"Hostname {hostname} status: {status}")
 else:
     # If there was an error, print the error message
     print(data)
