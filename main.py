@@ -4,6 +4,7 @@ import sys
 import json
 import time
 import logging
+import apprise
 from typing import Union, Any
 
 # Set up logging
@@ -13,17 +14,30 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 with open('config.json') as f:
     config = json.load(f)
     api_config = config['api']
-    hostnames = config['hostnames']
+    
+    hostnames = config.get('hostnames', [])
 
     # If the list of servers is empty in the config file, get it from the environment variable
     if not hostnames:
-        hostnames = os.getenv('HOSTNAMES').split(',')
+        hostnames_env = os.getenv('HOSTNAMES')
+        if hostnames_env is None:
+            raise ValueError("No hostnames provided in config file or HOSTNAMES environment variable")
+        try:
+            hostnames = json.loads(hostnames_env)
+        except json.JSONDecodeError:
+            raise ValueError("HOSTNAMES environment variable is not a valid JSON string")
     
-    discord_webhook = config.get('discord_webhook', '')  # Load Discord webhook URL, if empty use '' as default
+    apprise_urls = config.get('apprise_urls', [])
 
-# If the discord webhook URL is empty in the config file, get it from the environment variable
-if not discord_webhook:
-    discord_webhook = os.getenv('DISCORD_WEBHOOK')
+# If the Apprise URLs are empty in the config file, get them from the environment variable
+if not apprise_urls:
+    apprise_urls_env = os.getenv('APPRISE_URLS')
+    if apprise_urls_env is None:
+        raise ValueError("No Apprise URLs provided in config file or APPRISE_URLS environment variable")
+    try:
+        apprise_urls = json.loads(apprise_urls_env)
+    except json.JSONDecodeError:
+        raise ValueError("APPRISE_URLS environment variable is not a valid JSON string")
 
 def get_data_from_api(url: str, timeout: int, max_retries: int) -> Union[dict, str]:
     for i in range(max_retries):
@@ -54,11 +68,22 @@ def get_relay_status(data: dict, hostname: str) -> Union[str, bool, None]:
     # If the hostname was not found
     return f"Hostname {hostname} not found in the relay list."
 
-def send_discord_notification(webhook: str, message: str):
-    data = {"content": message}
-    response = requests.post(webhook, data=json.dumps(data), headers={"Content-Type": "application/json"})
-    if response.status_code != 204:
-        raise ValueError(f"Request to Discord returned an error {response.status_code}, the response is:\n{response.text}")
+def send_notification(urls: Union[str, list], message: str):
+    apobj = apprise.Apprise()
+
+    if isinstance(urls, str):
+        urls = [urls]
+
+    for url in urls:
+        try:
+            if not apobj.add(url):
+                logging.error(f"Failed to add notification service with URL: {url}")
+        except Exception as e:
+            logging.error(f"Error while adding notification service with URL {url}: {str(e)}")
+
+    # Then notify these services with the provided message
+    apobj.notify(body=message)
+
 
 # Get data from the API
 data = get_data_from_api(api_config['url'], api_config['timeout'], api_config['max_retries'])
@@ -86,5 +111,5 @@ if failed_hostnames:
 
     # Send a notification to Discord
     failed_hostnames_str = ', '.join(failed_hostnames)
-    send_discord_notification(discord_webhook, f"⚠️ The following hostnames are not active: {failed_hostnames_str}")
+    send_notification(apprise_urls, f"⚠️ The following hostnames are not active: {failed_hostnames_str}")
 

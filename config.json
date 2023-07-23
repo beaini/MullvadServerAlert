@@ -5,6 +5,6 @@
       "max_retries": 3
     },
     "hostnames": "",
-    "discord_webhook": ""
+    "apprise_urls": ""
   }
   

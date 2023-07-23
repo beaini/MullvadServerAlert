@@ -27,3 +27,4 @@ jobs:
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         HOSTNAMES: ${{ secrets.HOSTNAMES }}
+        APPRISE_URLS: ${{ secrets.APPRISE_URLS }}
