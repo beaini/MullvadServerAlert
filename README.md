@@ -28,7 +28,7 @@ Setup
 5.  Save the secrets. GitHub Actions will now have access to these secrets and will use them when running the workflow.
 
 6.  The GitHub Actions workflow is already set up in the `.github/workflows` directory in the file `hostname_check.yml`. By default, the workflow is scheduled to run every 5 minutes. If you want to change this, open `hostname_check.yml` and modify the `cron` line under `schedule`. The syntax for this line is the same as for cron jobs.
-
+ 
 Usage
 -----
 
